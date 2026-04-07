@@ -14,7 +14,7 @@ const cors = require("cors");
 // ❗ IMPORTANT: remove view engine (not needed in API)
 // app.set("view engine", "ejs");
 // app.set("views", "views");
-
+const isProd = process.env.NODE_ENV === "production";
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
