@@ -26,10 +26,10 @@ app.use(cookieParser());
 const DB_path = process.env.MONGO_URI;
 
 // ✅ Session store
-// const store = new MongoDbStore({
-//   uri: DB_path,
-//   collection: "sessions",
-// });
+const store = new MongoDbStore({
+  uri: DB_path,
+  collection: "sessions",
+});
 app.set("trust proxy", 1);
 // ✅ Session config (fixed for production)
 app.use(
@@ -37,7 +37,7 @@ app.use(
     secret: "sher",
     resave: false,
     saveUninitialized: false,
-    // store: store,
+    store: store,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
