@@ -33,7 +33,7 @@ app.set("trust proxy", 1);
 // =========================
 app.use(
   cors({
-    origin: /https:\/\/expense-tracker-.*\.vercel\.app/,
+    origin: true,
     credentials: true,
   })
 );
