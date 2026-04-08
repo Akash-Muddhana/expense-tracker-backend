@@ -33,9 +33,10 @@ app.set("trust proxy", 1);
 // =========================
 app.use(
   cors({
-    origin: isProd
-      ? "https://expense-tracker-kwc9.vercel.app"
-      : "http://localhost:5173",
+    origin: [
+      "https://expense-tracker-kwc9.vercel.app",
+      "https://expense-tracker-iy2y.vercel.app",
+    ],
     credentials: true,
   })
 );
