@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.set("trust proxy", 1);
 
 // =========================
-// ✅ CORS (MUST be before session)
+// ✅ COR
 // =========================
 app.use(
   cors({
