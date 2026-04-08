@@ -1,37 +1,56 @@
-// Core Module
-const path = require("path");
+// Core Modules
 const express = require("express");
 const session = require("express-session");
-const expenseRouter = require("./routes/newExpenseRouter");
-const errorsController = require("./controllers/errors");
-const authRouter = require("./routes/authRouter");
-const cookieParser = require("cookie-parser");
 const MongoDbStore = require("connect-mongodb-session")(session);
 const mongoose = require("mongoose");
-require("dotenv").config();
-const app = express();
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
-// ❗ IMPORTANT: remove view engine (not needed in API)
-// app.set("view engine", "ejs");
-// app.set("views", "views");
+require("dotenv").config();
+
+// Routes
+const expenseRouter = require("./routes/newExpenseRouter");
+const authRouter = require("./routes/authRouter");
+
+// App
+const app = express();
+
+// ENV
+const DB_path = process.env.MONGO_URI;
 const isProd = process.env.NODE_ENV === "production";
+
+// =========================
+// Middleware
+// =========================
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// ❗ STATIC not needed unless you really serve files
-// app.use(express.static(path.join(__dirname, "public")));
+// ✅ TRUST PROXY (important for Vercel)
+app.set("trust proxy", 1);
 
-// ✅ ENV instead of hardcoded DB
-const DB_path = process.env.MONGO_URI;
+// =========================
+// ✅ CORS (MUST be before session)
+// =========================
+app.use(
+  cors({
+    origin: isProd
+      ? "https://expense-tracker-kwc9.vercel.app"
+      : "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-// ✅ Session store
+// =========================
+// ✅ Session Store
+// =========================
 const store = new MongoDbStore({
   uri: DB_path,
   collection: "sessions",
 });
-app.set("trust proxy", 1);
-// ✅ Session config (fixed for production)
+
+// =========================
+// ✅ Session Config
+// =========================
 app.use(
   session({
     secret: "sher",
@@ -41,33 +60,21 @@ app.use(
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: isProd,           // required for HTTPS (Vercel)
+      sameSite: isProd ? "none" : "lax", // required for cross-origin
     },
-  }),
+  })
 );
 
-// ❗ REMOVE CORS completely (same domain on Vercel)
-// app.use(cors(...));
-if (process.env.NODE_ENV !== "production") {
-  app.use(
-    cors({
-      origin: "http://localhost:5173",
-      credentials: true,
-    }),
-  );
-}
-// ✅ Routes (KEEP SAME)
+// =========================
+// Routes
+// =========================
 app.use("/api/expense", expenseRouter);
 app.use("/api/auth", authRouter);
 
-// ❗ REMOVE bodyParser (duplicate)
-// const bodyParser = require("body-parser");
-
-// ❗ REMOVE app.listen (VERY IMPORTANT)
-// const PORT = 3000;
-
-// ✅ DB connection (serverless-safe)
+// =========================
+// DB Connection (Serverless safe)
+// =========================
 let isConnected = false;
 
 async function connectDB() {
@@ -79,11 +86,14 @@ async function connectDB() {
     console.log("✅ MongoDB connected");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
+    throw err;
   }
 }
 
-// ✅ If running locally → start server
-if (process.env.NODE_ENV !== "production") {
+// =========================
+// Local Dev Server
+// =========================
+if (!isProd) {
   const PORT = 3000;
   connectDB().then(() => {
     app.listen(PORT, () => {
@@ -91,6 +101,10 @@ if (process.env.NODE_ENV !== "production") {
     });
   });
 }
+
+// =========================
+// Vercel Export
+// =========================
 module.exports = async (req, res) => {
   try {
     await connectDB();
@@ -100,8 +114,3 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-// ✅ Export for Vercel
-// module.exports = async (req, res) => {
-//   await connectDB();
-//   return app(req, res);
-// };
