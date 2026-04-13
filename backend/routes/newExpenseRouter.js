@@ -3,7 +3,6 @@ const expenseRouter = express.Router();
 const expenseController = require("../controllers/newExpenseController");
 const authController = require("../controllers/authController");
 
-// ✅ PROTECTED ROUTES
 
 expenseRouter.get(
   "/YourExpenses",
@@ -17,7 +16,6 @@ expenseRouter.post(
   expenseController.postNewExpense
 );
 
-// ❗ FIX: protect these too
 expenseRouter.get(
   "/YourExpenses/:id",
   authController.isAuth,

@@ -14,7 +14,6 @@ const createExpenseSchema = mongoose.Schema({
   },
   experience: String,
 
-  // ✅ ADD THIS
   userId: {
     type: String,
     required: true,

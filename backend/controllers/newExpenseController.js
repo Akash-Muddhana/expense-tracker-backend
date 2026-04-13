@@ -1,6 +1,5 @@
 const expenseItem = require("../models/createExpenseItem");
 
-// ✅ CREATE
 exports.postNewExpense = async (req, res, next) => {
   try {
     const { title, amount, category, subCategory, rating, experience } = req.body;
@@ -13,7 +12,7 @@ exports.postNewExpense = async (req, res, next) => {
       rating,
       experience,
       date: new Date(),
-      userId: req.session.user._id, // ✅ link to user
+      userId: req.session.user._id, 
     });
 
     const savedItem = await newItem.save();
@@ -24,7 +23,6 @@ exports.postNewExpense = async (req, res, next) => {
   }
 };
 
-// ✅ GET ALL (ONLY USER’S DATA)
 exports.getExpenseItem = async (req, res, next) => {
   try {
     const userId = req.session.user._id;
@@ -37,7 +35,6 @@ exports.getExpenseItem = async (req, res, next) => {
   }
 };
 
-// ✅ EDIT
 exports.editExpense = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -66,7 +63,6 @@ exports.editExpense = async (req, res, next) => {
   }
 };
 
-// ✅ GET BY ID (ONLY OWNER)
 exports.getExpenseById = async (req, res, next) => {
   try {
     const id = req.params.id;

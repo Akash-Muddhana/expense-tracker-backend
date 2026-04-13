@@ -2,7 +2,6 @@ const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 
-// ✅ LOGIN
 exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -17,14 +16,12 @@ exports.postLogin = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    // ✅ Save session properly
     req.session.isLoggedIn = true;
     req.session.user = {
       _id: user._id.toString(),
       email: user.email,
     };
 
-    // ❗ IMPORTANT: ensure session is saved before response
     req.session.save((err) => {
       if (err) {
         console.error(err);
@@ -43,21 +40,18 @@ exports.postLogin = async (req, res, next) => {
   }
 };
 
-// ✅ LOGOUT
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ message: "Logout failed" });
     }
 
-    // ✅ Clear cookie explicitly (important)
     res.clearCookie("connect.sid");
 
     res.status(200).json({ message: "Logged out" });
   });
 };
 
-// ✅ SIGNUP
 exports.postSignup = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -70,7 +64,6 @@ exports.postSignup = async (req, res, next) => {
 
     const { firstName, secondName, email, password } = req.body;
 
-    // ❗ Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
@@ -101,7 +94,6 @@ exports.postSignup = async (req, res, next) => {
   }
 };
 
-// ✅ AUTH CHECK
 exports.isAuth = (req, res, next) => {
   if (!req.session || !req.session.isLoggedIn) {
     return res.status(401).json({ message: "Not logged in" });
