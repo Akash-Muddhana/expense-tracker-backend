@@ -1,9 +1,5 @@
-
 const express = require("express");
-const session = require("express-session");
-const MongoDbStore = require("connect-mongodb-session")(session);
 const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -20,7 +16,6 @@ const isProd = process.env.NODE_ENV === "production";
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cookieParser());
 
 app.set("trust proxy", 1);
 
@@ -28,30 +23,12 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: true,
-    credentials: true,
   })
 );
 
 
-const store = new MongoDbStore({
-  uri: DB_path,
-  collection: "sessions",
-});
 
-app.use(
-  session({
-    secret: "sher",
-    resave: false,
-    saveUninitialized: false,
-    store: store,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000,
-      httpOnly: true,
-      secure: isProd,          
-      sameSite: isProd ? "none" : "lax",
-    },
-  })
-);
+
 
 
 app.use("/api/expense", expenseRouter);
@@ -75,7 +52,7 @@ async function connectDB() {
 
 
 if (!isProd) {
-  const PORT = 3000;
+  const PORT = 3001;
   connectDB().then(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);

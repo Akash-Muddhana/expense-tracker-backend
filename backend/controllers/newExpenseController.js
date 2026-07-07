@@ -3,6 +3,11 @@ const expenseItem = require("../models/createExpenseItem");
 exports.postNewExpense = async (req, res, next) => {
   try {
     const { title, amount, category, subCategory, rating, experience } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     const newItem = new expenseItem({
       title,
@@ -12,7 +17,7 @@ exports.postNewExpense = async (req, res, next) => {
       rating,
       experience,
       date: new Date(),
-      userId: req.session.user._id, 
+      userId,
     });
 
     const savedItem = await newItem.save();
@@ -25,7 +30,11 @@ exports.postNewExpense = async (req, res, next) => {
 
 exports.getExpenseItem = async (req, res, next) => {
   try {
-    const userId = req.session.user._id;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     const expenseitems = await expenseItem.find({ userId });
 
@@ -38,7 +47,11 @@ exports.getExpenseItem = async (req, res, next) => {
 exports.editExpense = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const userId = req.session.user._id;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     const item = await expenseItem.findOne({ _id: id, userId });
 
@@ -66,7 +79,11 @@ exports.editExpense = async (req, res, next) => {
 exports.getExpenseById = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const userId = req.session.user._id;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     const item = await expenseItem.findOne({ _id: id, userId });
 
@@ -82,7 +99,11 @@ exports.getExpenseById = async (req, res, next) => {
 exports.deleteExpense = async (req, res) => {
   try {
     const id = req.params.id;
-    const userId = req.session.user._id;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
     const deleted = await expenseItem.findOneAndDelete({
       _id: id,
