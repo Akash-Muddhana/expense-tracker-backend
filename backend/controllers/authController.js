@@ -7,7 +7,15 @@ exports.postLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail }).collation({
+      locale: "en",
+      strength: 2,
+    });
     if (!user) {
       return res.status(401).json({ message: "User does not exist" });
     }
@@ -54,8 +62,12 @@ exports.postSignup = async (req, res, next) => {
     }
 
     const { firstName, secondName, email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail }).collation({
+      locale: "en",
+      strength: 2,
+    });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
@@ -65,7 +77,7 @@ exports.postSignup = async (req, res, next) => {
     const user = new User({
       firstName,
       secondName,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
     });
 
@@ -101,4 +113,23 @@ exports.isAuth = (req, res, next) => {
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
   }
+};
+
+exports.optionalAuth = (req, res, next) => {
+  const authHeader = req.get("Authorization");
+
+  if (!authHeader) return next();
+
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme !== "Bearer" || !token) return next();
+
+  try {
+    req.user = jwt.verify(token, jwtSecret);
+  } catch (err) {
+    if (err.name !== "JsonWebTokenError" && err.name !== "TokenExpiredError") {
+      return res.status(500).json({ message: "Authentication failed" });
+    }
+  }
+
+  next();
 };

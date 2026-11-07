@@ -26,11 +26,6 @@ app.use(
   })
 );
 
-
-
-
-
-
 app.use("/api/expense", expenseRouter);
 app.use("/api/auth", authRouter);
 

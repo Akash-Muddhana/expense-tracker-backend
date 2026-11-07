@@ -6,30 +6,30 @@ const authController = require("../controllers/authController");
 
 expenseRouter.get(
   "/YourExpenses",
-  authController.isAuth,
+  authController.optionalAuth,
   expenseController.getExpenseItem
 );
 
 expenseRouter.post(
   "/NewExpense",
-  authController.isAuth,
+  authController.optionalAuth,
   expenseController.postNewExpense
 );
 
 expenseRouter.get(
   "/YourExpenses/:id",
-  authController.isAuth,
+  authController.optionalAuth,
   expenseController.getExpenseById
 );
 
 expenseRouter.put(
   "/EditExpenses/:id",
-  authController.isAuth,
+  authController.optionalAuth,
   expenseController.editExpense
 );
 expenseRouter.delete(
   "/DeleteExpense/:id",
-  authController.isAuth,
+  authController.optionalAuth,
   expenseController.deleteExpense
 );
 module.exports = expenseRouter;

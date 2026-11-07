@@ -16,7 +16,10 @@ const createExpenseSchema = mongoose.Schema({
 
   userId: {
     type: String,
-    required: true,
+  },
+
+  guestId: {
+    type: String,
   },
 
   date: {

@@ -1,12 +1,28 @@
 const expenseItem = require("../models/createExpenseItem");
 
+const getOwner = (req) => {
+  if (req.user?.userId) return { userId: req.user.userId };
+
+  const guestId = req.get("X-Guest-Id");
+  if (
+    !guestId ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      guestId,
+    )
+  ) {
+    return null;
+  }
+
+  return { guestId };
+};
+
 exports.postNewExpense = async (req, res, next) => {
   try {
     const { title, amount, category, subCategory, rating, experience } = req.body;
-    const userId = req.user?.userId;
+    const owner = getOwner(req);
 
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!owner) {
+      return res.status(400).json({ message: "A valid guest ID is required" });
     }
 
     const newItem = new expenseItem({
@@ -17,7 +33,7 @@ exports.postNewExpense = async (req, res, next) => {
       rating,
       experience,
       date: new Date(),
-      userId,
+      ...owner,
     });
 
     const savedItem = await newItem.save();
@@ -30,13 +46,13 @@ exports.postNewExpense = async (req, res, next) => {
 
 exports.getExpenseItem = async (req, res, next) => {
   try {
-    const userId = req.user?.userId;
+    const owner = getOwner(req);
 
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!owner) {
+      return res.status(400).json({ message: "A valid guest ID is required" });
     }
 
-    const expenseitems = await expenseItem.find({ userId });
+    const expenseitems = await expenseItem.find(owner);
 
     res.status(200).json(expenseitems);
   } catch (err) {
@@ -47,13 +63,13 @@ exports.getExpenseItem = async (req, res, next) => {
 exports.editExpense = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const userId = req.user?.userId;
+    const owner = getOwner(req);
 
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!owner) {
+      return res.status(400).json({ message: "A valid guest ID is required" });
     }
 
-    const item = await expenseItem.findOne({ _id: id, userId });
+    const item = await expenseItem.findOne({ _id: id, ...owner });
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -79,13 +95,13 @@ exports.editExpense = async (req, res, next) => {
 exports.getExpenseById = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const userId = req.user?.userId;
+    const owner = getOwner(req);
 
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!owner) {
+      return res.status(400).json({ message: "A valid guest ID is required" });
     }
 
-    const item = await expenseItem.findOne({ _id: id, userId });
+    const item = await expenseItem.findOne({ _id: id, ...owner });
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -99,15 +115,15 @@ exports.getExpenseById = async (req, res, next) => {
 exports.deleteExpense = async (req, res) => {
   try {
     const id = req.params.id;
-    const userId = req.user?.userId;
+    const owner = getOwner(req);
 
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!owner) {
+      return res.status(400).json({ message: "A valid guest ID is required" });
     }
 
     const deleted = await expenseItem.findOneAndDelete({
       _id: id,
-      userId,
+      ...owner,
     });
 
     if (!deleted) {

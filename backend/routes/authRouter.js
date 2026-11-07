@@ -15,12 +15,16 @@ authRouter.post(
   "/signup",
   [
     body("email")
+      .trim()
       .isEmail()
       .withMessage("enter a valid email"),
     body("password")
-      .trim()
       .isLength({ min: 4 })
       .withMessage("enter a password of about 4 characters"),
+    body("firstName")
+      .trim()
+      .notEmpty()
+      .withMessage("enter your first name"),
   ],
   authController.postSignup
 );
